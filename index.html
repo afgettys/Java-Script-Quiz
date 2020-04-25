@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+    <div class="scores"><a href="highscores.html">View Highscores</a></div>
+    <div class="timer">Time: <span id="time">0</span></div>
+
+    <div class="wrapper">
+      <div id="start-screen" class="start">
+        <h1>Coding Quiz Challenge</h1>
+        <p>
+         Please answer following questions. For every wrong answer, your score time will be reduced in ten seconds.
+        </p>
+        <button id="start">Start Quiz</button>
+      </div>
+
+      <div id="questions" class="hide">
+        <h2 id="question-title"></h2>
+        <div id="choices" class="choices"></div>
+      </div>
+
+      <div class="scores" View Highscores></div>
+
+      <div id="end-screen" class="hide">
+        <h2>All done!</h2>
+        <p>Your final score is <span id="final-score"></span></p>
+        <p>
+          Enter initials: <input type="text" id="initials" max="3" />
+          <button id="submit">Submit</button>
+        </p>
+      </div>
+
+      <div id="feedback" class="feedback hide"></div>
+    </div>
+
+    <script>
+
+var questions = [
+  {
+    title: "A Nav tag defines",
+    choices: ["a header for a document", "a container for nav links", "a footer for a section", "a section in a document"],
+    answer: "a container for nav links"
+  },
+  {
+    title: "Grids are made of ____.",
+    choices: ["containers", "rows", "columns", "all previous answers"],
+    answer: "all previous answers"
+  },
+  {
+    title: "In JavaScript, it is good practice to add _____ by the end of the syntax:",
+    choices: [
+      "semicolon",
+      "period",
+      "coma",
+      "nothing, just leave it empty"
+    ],
+    answer:   "semicolon"
+  },
+  {
+    title:
+      "'For' loop starts with ____ ",
+    choices: ["quotes", "console.log", "array", "parentheses"],
+    answer: "array"
+  },
+  {
+    title:
+      "'chartAt' is a method that returns the character at the specific index in a ____",
+    choices: ["array", "string", "phrase", "console.log"],
+    answer: "string"
+  }
+];
+
+var currentQuestionIndex = 0;
+var time = questions.length * 15;
+var timerId;
+    
+var questionsEl = document.getElementById("questions");
+var timerEl = document.getElementById("time");
+var choicesEl = document.getElementById("choices");
+var submitBtn = document.getElementById("submit");
+var startBtn = document.getElementById("start");
+var initialsEl = document.getElementById("initials");
+var feedbackEl = document.getElementById("feedback");
+
+function startQuiz() {
+  
+  var startScreenEl = document.getElementById("start-screen");
+  startScreenEl.setAttribute("class", "hide");
+
+  questionsEl.removeAttribute("class");
+
+  timerId = setInterval(clockTick, 1000);
+
+  timerEl.textContent = time;
+
+  getQuestion();
+}
+
+function getQuestion() {
+
+  var currentQuestion = questions[currentQuestionIndex];
+
+
+  var titleEl = document.getElementById("question-title");
+  titleEl.textContent = currentQuestion.title;
+
+
+  choicesEl.innerHTML = "";
+
+ 
+  currentQuestion.choices.forEach(function(choice, i) {
+  
+    var choiceNode = document.createElement("button");
+    choiceNode.setAttribute("class", "choice");
+    choiceNode.setAttribute("value", choice);
+
+    choiceNode.textContent = i + 1 + ". " + choice;
+
+    choiceNode.onclick = questionClick;
+   
+    choicesEl.appendChild(choiceNode);
+  });
+}
+
+function questionClick() {
+
+  if (this.value !== questions[currentQuestionIndex].answer) {
+  
+    time -= 15;
+
+    if (time < 0) {
+      time = 0;
+    }
+
+    timerEl.textContent = time;
+
+    feedbackEl.textContent = "Wrong!";
+  } else {
+   
+
+    feedbackEl.textContent = "Correct!";
+  }
+  feedbackEl.setAttribute("class", "feedback");
+  setTimeout(function() {
+    feedbackEl.setAttribute("class", "feedback hide");
+  }, 1000);
+ 
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex === questions.length) {
+    quizEnd();
+  } else {
+    getQuestion();
+  }
+}  
+
+
+function quizEnd() {
+  clearInterval(timerId);
+
+  var endScreenEl = document.getElementById("end-screen");
+  endScreenEl.removeAttribute("class");
+
+  var finalScoreEl = document.getElementById("final-score");
+  finalScoreEl.textContent = time;
+
+  questionsEl.setAttribute("class", "hide");
+}
+
+function clockTick() {
+  time--;
+  timerEl.textContent = time;
+
+  if (time <= 0) {
+    quizEnd();
+  }
+}
+
+function saveHighscore() {
+
+  var initials = initialsEl.value.trim();
+
+  if (initials !== "") {
+    var highscores =
+      JSON.parse(window.localStorage.getItem("highscores")) || [];
+
+    var newScore = {
+      score: time,
+      initials: initials
+    };
+
+    highscores.push(newScore);
+    window.localStorage.setItem("highscores", JSON.stringify(highscores));
+   
+    window.location.href = "highscores.html";
+  }
+}
+
+function checkForEnter(event) {
+
+  if (event.key === "Enter") {
+    saveHighscore();
+  }
+}
+
+submitBtn.onclick = saveHighscore;
+
+startBtn.onclick = startQuiz;
+
+initialsEl.onkeyup = checkForEnter;
+   
+    </script>
+  </body>
+</html>
